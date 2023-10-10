@@ -2,7 +2,7 @@ require './get_words'
 require 'yaml'
 
 class Hangman
-  attr_reader :tries, :player_name, :word, :game_ended
+  attr_reader :tries, :player_name, :word, :game_ended, :player_word
 
   def initialize(kwargs)
     if kwargs[:player_name].strip == ''
@@ -14,11 +14,11 @@ class Hangman
     if kwargs[:saved_load] == true
       @word = kwargs[:word]
       @tries = kwargs[:tries]
-      @guess = kwargs[:guess]
+      @player_word = kwargs[:guess]
     else
       @word = ''
       @tries = 10
-      @guess = ''
+      @player_word = ''
     end
   end
 
@@ -27,17 +27,31 @@ class Hangman
     while @word.length < 5 || @word.length > 12
       @word = File.open('../words.txt', 'r'){|file| file.readlines.sample.strip}
     end
-    @guess = '_' * @word.length
+    @player_word = '_' * @word.length
   end
 
   def player_guess(guess)
-    if @word.include?(guess)
-      puts 'u guessed right'
-      @game_ended = true
+    if guess.length > 1
+      puts 'You sure you want to guess the whole word and risk game over?[y/n]'
+      confirmation = gets.chomp().downcase
+      if confirmation == 'y'
+        if guess != word
+          puts "you lost the correct word is #{@word}"
+          @tries = 0
+          return
+        end
+        @player_word = guess
+      end
     else
-      @tries = @tries - 1
-      puts "you gussed wrong #{@tries} left"
+      if @word.include?(guess)
+        @player_word[@word.index(guess)] = guess
+        puts player_word
+      else
+        @tries = @tries - 1
+        puts "you gussed wrong #{@tries} left"
+      end
     end
+    @game_ended = true unless @word != @player_word
   end
 
   def to_s()
