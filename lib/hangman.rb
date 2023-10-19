@@ -14,7 +14,7 @@ class Hangman
     if kwargs[:saved_load] == true
       @word = kwargs[:word]
       @tries = kwargs[:tries]
-      @player_word = kwargs[:guess]
+      @player_word = kwargs[:player_word]
     else
       @word = ''
       @tries = 10
@@ -49,7 +49,7 @@ class Hangman
     if @game_ended
       puts "Congrats you won by guessing the word it was #{@word}!!"
     elsif @tries == 0
-      puts 'Game Over! better luck next time'
+      puts "Game Over! better luck next time the correct word was #{@word}"
     else
       puts `clear`
       puts "You have #{@tries} left"
@@ -59,7 +59,6 @@ class Hangman
   def make_guess_cover()
     guess_cover = @word.dup
     @player_word.split('').each_with_index do |letter, index|
-      puts letter
       guess_cover[index] = '_' unless letter != @word[index]
     end
     guess_cover
@@ -99,6 +98,7 @@ class Hangman
       :player_name => @player_name,
       :word => @word,
       :tries => @tries,
+      :player_word => @player_word,
       :saved_load => true
     })
     serilized_object
@@ -139,6 +139,7 @@ while true
     name = gets.chomp
     if File.exists?("../saved games/#{name}.yml")
       hangman_game = Hangman.load_game(name)
+      puts hangman_game
     else
       puts 'No saved games found proceeding for a new game'
       next
@@ -157,7 +158,7 @@ while true
     guess = gets.chomp
     if guess == "EXIT"
       save_game = 'n'
-      puts 'return to main menu?[y/n]'
+      puts 'save game?[y/n]'
       save_game = gets.chomp
       if save_game.downcase == 'y'
         hangman_game.save_game()
