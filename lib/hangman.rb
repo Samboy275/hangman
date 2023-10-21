@@ -124,26 +124,41 @@ class Hangman
 
 end
 
+def show_saved_games()
+  file_names = Dir.entries("../saved games/")
+  file_names.select! { |filename| filename.length > 3 }
+  file_names.each_with_index do |filename, index|
+    puts "#{index + 1} - #{filename}"
+  end
+end
+
+def make_game_instance(instance_type)
+  hangman_game = nil
+  case instance_type
+  when '1'
+    puts "Please enter your name[This name will be used to save your game]:"
+    player_name = gets.chomp
+    hangman_game = Hangman.new(player_name: player_name)
+    hangman_game.select_word
+  when '2'
+    show_saved_games()
+    puts "Enter saved file name"
+    name = gets.chomp
+    if File.exists?("../saved games/#{name}.yml")
+      hangman_game = Hangman.load_game(name)
+    end
+  end
+  return hangman_game
+end
+
 while true
 
 
   load_save = Hangman.start_message()
   hangman_game = nil
-  if load_save == '1'
-    puts "Please enter your name[This name will be used to save your game]:"
-    player_name = gets.chomp
-    hangman_game = Hangman.new(player_name: player_name)
-    hangman_game.select_word
-  elsif load_save == '2'
-    puts "please enter player name to load the game"
-    name = gets.chomp
-    if File.exists?("../saved games/#{name}.yml")
-      hangman_game = Hangman.load_game(name)
-      puts hangman_game
-    else
-      puts 'No saved games found proceeding for a new game'
-      next
-    end
+  if '12'.include?(load_save)
+    hangman_game = make_game_instance(load_save)
+    next if hangman_game == nil
   else
     break
   end
