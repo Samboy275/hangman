@@ -109,27 +109,36 @@ class Hangman
     return hangman
   end
 
-  def save_game()
-    File.open("../saved\ games/#{@player_name}.yml", 'w') do |file|
+  def save_game(filename)
+    dubplicates = Dir.entries('../saved games/').select {|fname| fname.include?(filename)}
+    filename = filename + '_' + (dubplicates.length + 1).to_s
+    File.open("../saved\ games/#{filename}.yml", 'w') do |file|
       hangman_ser = self.to_yaml()
       file.write hangman_ser
-      puts "game saved as #{@player_name}"
+      puts "game saved as #{filename}"
     end
   end
 
-  def self.load_game(player_name)
-    ser_obj = YAML.load(File.read("../saved\ games/#{player_name}.yml"))
+  def self.load_game(filename)
+    ser_obj = YAML.load(File.read("../saved\ games/#{filename}"))
     return self.from_yaml(ser_obj)
   end
 
 end
 
 def show_saved_games()
+  puts `clear`
+  puts 'Here is a list of saved games:'
+  file_number = 0
   file_names = Dir.entries("../saved games/")
   file_names.select! { |filename| filename.length > 3 }
+  return file_names[0] unless file_names.length > 1
   file_names.each_with_index do |filename, index|
     puts "#{index + 1} - #{filename}"
   end
+  print 'Please Enter the number of the file you want to load: '
+  file_number = gets.chomp until (file_number.to_i > 0 and file_number.to_i <= file_names.length)
+  return file_names[file_number.to_i - 1]
 end
 
 def make_game_instance(instance_type)
@@ -141,14 +150,17 @@ def make_game_instance(instance_type)
     hangman_game = Hangman.new(player_name: player_name)
     hangman_game.select_word
   when '2'
-    show_saved_games()
-    puts "Enter saved file name"
-    name = gets.chomp
-    if File.exists?("../saved games/#{name}.yml")
+    name = show_saved_games()
+    if File.exists?("../saved games/#{name}")
       hangman_game = Hangman.load_game(name)
     end
   end
   return hangman_game
+end
+
+def enter_continue()
+  print "Press Enter to continue"
+  gets
 end
 
 while true
@@ -176,7 +188,10 @@ while true
       puts 'save game?[y/n]'
       save_game = gets.chomp
       if save_game.downcase == 'y'
-        hangman_game.save_game()
+        print "Enter save file name: "
+        file_name = gets.chomp
+        hangman_game.save_game(file_name)
+        enter_continue()
       end
       break
     end
@@ -184,6 +199,5 @@ while true
     break if hangman_game.game_ended
   end
   hangman_game.display_state
-  puts "Press Enter to continue"
-  gets
+  enter_continue()
 end
